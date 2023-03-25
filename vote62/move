@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# define the input file
+input_file="data/pred_classes.txt"
+
+# read the input file line by line
+while read line; do
+
+  # split the line into fields using whitespace as the delimiter
+  fields=($line)
+  
+  # get the file path, class, and confident values from the fields array
+  file_path=${fields[0]}
+  class=${fields[1]}
+  confident=${fields[2]}
+  subfolder="data/image/$class/"
+  # create the subfolder if it doesn't exist
+  if [ ! -d "$subfolder" ]; then
+    mkdir "$subfolder"
+  fi
+  
+  # move the file to the subfolder corresponding to the class
+  if [ -e "$file_path" ]; then
+    mv "$file_path" $subfolder
+  fi
+  
+done < "$input_file"

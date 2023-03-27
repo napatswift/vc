@@ -1,3 +1,2 @@
-*.png
-*jpeg
-*jpg
+data/
+.ipynb_checkpoints/

@@ -8,20 +8,18 @@ model = dict(
 
 # Modify dataset related settings
 dataset_type = 'COCODataset'
-classes = ('balloon',)
+classes = ('Table',)
 data = dict(
     train=dict(
-        img_prefix='balloon/train/',
         classes=classes,
-        ann_file='balloon/train/annotation_coco.json'),
+        img_prefix='data/table-det-610/',
+        ann_file='data/table-det-610/train_coco.json'),
     val=dict(
-        img_prefix='balloon/val/',
         classes=classes,
-        ann_file='balloon/val/annotation_coco.json'),
+        ann_file='data/table-det-610/test_coco.json'),
     test=dict(
-        img_prefix='balloon/val/',
         classes=classes,
-        ann_file='balloon/val/annotation_coco.json'))
+        ann_file='data/table-det-610/test_coco.json'))
 
 # We can use the pre-trained Mask RCNN model to obtain higher performance
 load_from = 'checkpoints/mask_rcnn_r50_caffe_fpn_mstrain-poly_3x_coco_bbox_mAP-0.408__segm_mAP-0.37_20200504_163245-42aa3d00.pth'

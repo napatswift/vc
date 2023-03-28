@@ -1,7 +1,7 @@
 import json
 import os
 import subprocess
-import numpy as np
+import argparse
 from sklearn.model_selection import train_test_split
 
 def export(split_set, split_name):
@@ -15,7 +15,10 @@ def export(split_set, split_name):
         json.dump(dataset, fp, indent=1)
 
 if __name__ == '__main__':
-    dir_path = './table-det-610'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path', 'path-to-coco-directory')
+    args = parser.parse_args()
+    dir_path = args.path
     img_dir = 'images'
 
     with open(os.path.join(dir_path, 'result.json')) as fp:

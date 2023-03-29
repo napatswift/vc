@@ -16,9 +16,9 @@ def export(split_set, split_name):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('path', 'path-to-coco-directory')
+    parser.add_argument('-p', help='path-to-coco-directory', required=True)
     args = parser.parse_args()
-    dir_path = args.path
+    dir_path = args.p
     img_dir = 'images'
 
     with open(os.path.join(dir_path, 'result.json')) as fp:

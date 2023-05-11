@@ -1,6 +1,5 @@
 apt-get update
-apt-get install python3-setuptools
-apt-get install tmux
+apt-get install -y python3-setuptools tmux
 
 pip install -U openmim
 mim install mmengine

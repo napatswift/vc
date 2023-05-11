@@ -23,8 +23,6 @@ class MyModel(LabelStudioMLBase):
     def predict(self, tasks, **kwargs):
         prediction = []
 
-        # ...and implement predict function
-        # print('Predicting tasks:', tasks)
         image_value_key = self.schema['value_key']
         for task in tasks:
             image_path = get_image_local_path(task['data'][image_value_key])
@@ -49,28 +47,83 @@ class MyModel(LabelStudioMLBase):
                 'model_version': self.model_version
             })
         
-        print('prediction', prediction)
         return prediction
     
     def _predict(self, image_path):
-        result = self.model_api.predict(image_path, api_name="/predict")
-        with open(result) as fp:
-            return json.load(fp)['predictions'][0]['det_polygons']
-
-    def _get_x_y_w_h(self, polygon: list, image_width, image_height):
-        """Get x, y, w, h from polygon
+        """
+        Predicts the bounding boxes of objects in an image.
 
         Args:
-            polygon (list): [x0, y0, x1, y1, ..., xn, yn]
+            image_path (str): The path to the image file.
+
+        Returns:
+            list: A list of bounding boxes, in the format `[x1, y1, x2, y2]`.
+
+        Raises:
+            Exception: If an error occurs during prediction.
         """
-        x_pos = [pos/image_width*100 for i, pos in enumerate(polygon) if i % 2 == 0]
-        y_pos = [pos/image_height*100 for i, pos in enumerate(polygon) if i % 2 != 0]
-        x = min(x_pos)
-        y = min(y_pos)
-        w = max(x_pos) - x
-        h = max(y_pos) - y
-        return dict(x=x,
-                    y=y,
-                    width=w,
-                    height=h,
-                    rectanglelabels=['Text'])
+
+        # Get the result file path.
+        result_file_path = self.model_api.predict(image_path, api_name="/predict")
+
+        # Load the result file.
+        with open(result_file_path) as fp:
+            loaded_data = json.load(fp)
+
+        # Get the first prediction.
+        prediction = loaded_data['predictions'][0]
+
+        # Get the bounding boxes.
+        bounding_boxes = prediction['det_polygons']
+
+        # Return the bounding boxes.
+        return bounding_boxes
+    
+    def _get_x_y_w_h(self, polygon: list, image_width, image_height):
+        """
+        Get the x, y, w, and h coordinates of a rectangle from a polygon.
+
+        Args:
+            polygon (list): A list of 2D points that define the polygon.
+            image_width (int): The width of the image in pixels.
+            image_height (int): The height of the image in pixels.
+
+        Returns:
+            dict: A dictionary with the following keys:
+                * x: The x-coordinate of the top-left corner of the rectangle.
+                * y: The y-coordinate of the top-left corner of the rectangle.
+                * width: The width of the rectangle in pixels.
+                * height: The height of the rectangle in pixels.
+                * rectanglelabels: A list of labels for the rectangle.
+        """
+
+        # Get the x-coordinates of the polygon.
+        x_coordinates = [pos/image_width for i, pos in enumerate(polygon) if i % 2 == 0]
+
+        # Get the y-coordinates of the polygon.
+        y_coordinates = [pos/image_height for i, pos in enumerate(polygon) if i % 2 != 0]
+
+        # Get the minimum and maximum x-coordinates.
+        min_x = min(x_coordinates)
+        max_x = max(x_coordinates)
+
+        # Get the minimum and maximum y-coordinates.
+        min_y = min(y_coordinates)
+        max_y = max(y_coordinates)
+
+        # Calculate the width and height of the rectangle.
+        width = max_x - min_x
+        height = max_y - min_y
+
+        # Create a dictionary with the x, y, width, and height of the rectangle.
+        rectangle = {
+            "x": min_x,
+            "y": min_y,
+            "width": width,
+            "height": height,
+            "rectanglelabels": ["Text"]
+        }
+
+        # Return the rectangle.
+        return rectangle
+

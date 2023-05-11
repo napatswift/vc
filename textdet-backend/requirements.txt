@@ -1,1 +1,3 @@
 gradio_client
+opencv-python
+json

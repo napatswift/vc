@@ -18,7 +18,7 @@ class MyModel(LabelStudioMLBase):
             'value_key': schema['inputs'][0]['value']
         }
 
-        self.model_api = Client("https://napatswift-test.hf.space/")
+        self.model_api = Client("https://napatswift-votecount-ml-be.hf.space/")
     
     def predict(self, tasks, **kwargs):
         prediction = []

@@ -6,9 +6,8 @@ import json
 
 class MyModel(LabelStudioMLBase):
     def __init__(self, **kwargs):
-        # don't forget to initialize base class...
         super(MyModel, self).__init__(**kwargs)
-        # print('parsed_label_config', self.parsed_label_config)
+
         self.from_name, schema = list(self.parsed_label_config.items())[0]
         self.model_version = '0.0.1'
         self.schema = {

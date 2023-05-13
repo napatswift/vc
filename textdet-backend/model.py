@@ -1,16 +1,22 @@
 from label_studio_ml.model import LabelStudioMLBase
-from label_studio_ml.utils import get_image_local_path
 import cv2
 from gradio_client import Client
 import json
 
+model_client = Client("https://napatswift-votecount-ml-be.hf.space/")
+
+
 class MyModel(LabelStudioMLBase):
     def __init__(self, **kwargs):
-        # don't forget to initialize base class...
         super(MyModel, self).__init__(**kwargs)
-        # print('parsed_label_config', self.parsed_label_config)
+
+        # Get the name of the field in the input data that contains the text to be classified.
         self.from_name, schema = list(self.parsed_label_config.items())[0]
-        self.model_version = '0.0.1'
+
+        # Set the model version.
+        self.model_version = '0.1.0'
+
+        # Set the schema of the input data.
         self.schema = {
             'to_name': schema['to_name'][0],
             'from_name': self.from_name,
@@ -18,22 +24,50 @@ class MyModel(LabelStudioMLBase):
             'value_key': schema['inputs'][0]['value']
         }
 
-        self.model_api = Client("https://napatswift-votecount-ml-be.hf.space/")
-    
+        # Create the API client for the model.
+        self.model_api = model_client
+
     def predict(self, tasks, **kwargs):
+        """
+        Predicts the bounding boxes of objects in an image.
+
+        Args:
+            tasks: A list of tasks.
+            kwargs: Additional keyword arguments.
+
+        Returns:
+            A list of predictions, each of which contains a list of bounding boxes, a score, and the model version.
+
+        Raises:
+            ValueError: If the schema does not contain a `from_name` or `to_name` key.
+        """
+
+        # Check the schema.
+        if not self.schema.get('from_name'):
+            raise ValueError('Schema must contain a `from_name` key.')
+        if not self.schema.get('to_name'):
+            raise ValueError('Schema must contain a `to_name` key.')
+        
+        image_value_key = self.schema['value_key']
+
+        # Predict the bounding boxes for each task.
         prediction = []
 
-        image_value_key = self.schema['value_key']
         for task in tasks:
-            image_path = get_image_local_path(task['data'][image_value_key])
-            
+            image_path = task['data'][image_value_key]
+            print('Task ID', task['id'], 'image path', image_path)
+            if image_path.startswith('/data/local-files/?d='):
+                image_path = image_path.replace('/data/local-files/?d=', '/')
             try:
-                results = self._predict(image_path)
+                results, score = self._predict(image_path)
             except Exception as e:
                 results = []
+                score = 0.0
 
+            # Get the image height and width.
             image_height, image_width = cv2.imread(image_path).shape[:2]
 
+            # Create a prediction for each bounding box.
             prediction.append({
                 'result': [
                     {
@@ -43,12 +77,14 @@ class MyModel(LabelStudioMLBase):
                         'value': self._get_x_y_w_h(result, image_width, image_height)
                     } for result in results
                 ],
-                'score': 1.0,
+                'score': score,
                 'model_version': self.model_version
             })
-        
+
+        # Return the predictions.
         return prediction
     
+
     def _predict(self, image_path):
         """
         Predicts the bounding boxes of objects in an image.
@@ -58,13 +94,16 @@ class MyModel(LabelStudioMLBase):
 
         Returns:
             list: A list of bounding boxes, in the format `[x1, y1, x2, y2]`.
+            float: The score of the prediction.
 
         Raises:
             Exception: If an error occurs during prediction.
         """
 
         # Get the result file path.
-        result_file_path = self.model_api.predict(image_path, api_name="/predict")
+        print('Predicting image', image_path)
+        result_file_path = self.model_api.predict(
+            image_path, api_name="/predict")
 
         # Load the result file.
         with open(result_file_path) as fp:
@@ -73,12 +112,62 @@ class MyModel(LabelStudioMLBase):
         # Get the first prediction.
         prediction = loaded_data['predictions'][0]
 
-        # Get the bounding boxes.
-        bounding_boxes = prediction['det_polygons']
+        # Get the bounding boxes and score.
+        bounding_boxes, scores = self._prediction_filter(prediction['det_polygons'],
+                                                         prediction['det_scores'])
 
-        # Return the bounding boxes.
-        return bounding_boxes
-    
+        # Calculate the score.
+        score = self._calc_score(scores)
+
+        # Return the bounding boxes, and score.
+        return bounding_boxes, score
+
+    def _prediction_filter(self, polygons, scores, score_threshold=0.5):
+        """
+        Filters the predictions based on the score threshold.
+        
+        Args:
+            polygons (list): A list of polygons.
+            scores (list): A list of scores.
+            score_threshold (float): The score threshold. defaults to 0.5.
+        
+        Returns:
+            list: A list of filtered polygons.
+            list: A list of filtered scores.
+        """
+
+        filtered_polygons = []
+        filtered_scores = []
+        # Iterate over the polygons and scores.
+        for polygon, score in zip(polygons, scores):
+
+            # If the score is greater than or equal to the score threshold,
+            # then add the polygon and score to the filtered lists.
+            if score >= score_threshold:
+                filtered_polygons.append(polygon)
+                filtered_scores.append(score)
+        return filtered_polygons, filtered_scores
+
+    def _calc_score(self, scores):
+        """
+        Calculates the score of a prediction.
+
+        Args:
+            scores (list): A list of scores.
+
+        Returns:
+            float: The score of the prediction.
+
+        Raises:
+            ValueError: If the list of scores is empty.
+        """
+
+        if not scores:
+            raise ValueError("The list of scores cannot be empty.")
+
+        return sum(scores) / len(scores)
+
+
     def _get_x_y_w_h(self, polygon: list, image_width, image_height):
         """
         Get the x, y, w, and h coordinates of a rectangle from a polygon.
@@ -98,10 +187,12 @@ class MyModel(LabelStudioMLBase):
         """
 
         # Get the x-coordinates of the polygon.
-        x_coordinates = [pos/image_width for i, pos in enumerate(polygon) if i % 2 == 0]
+        x_coordinates = [pos/image_width*100 for i,
+                         pos in enumerate(polygon) if i % 2 == 0]
 
         # Get the y-coordinates of the polygon.
-        y_coordinates = [pos/image_height for i, pos in enumerate(polygon) if i % 2 != 0]
+        y_coordinates = [pos/image_height*100 for i,
+                         pos in enumerate(polygon) if i % 2 != 0]
 
         # Get the minimum and maximum x-coordinates.
         min_x = min(x_coordinates)
@@ -126,4 +217,3 @@ class MyModel(LabelStudioMLBase):
 
         # Return the rectangle.
         return rectangle
-

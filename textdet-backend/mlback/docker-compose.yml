@@ -27,3 +27,5 @@ services:
     volumes:
       - "./data/server:/data"
       - "./logs:/tmp"
+      - "~/wevis/election-vote-count-66/textdet-backend/vote62:/vote62"
+

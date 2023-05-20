@@ -2,3 +2,4 @@ data/
 .ipynb_checkpoints/
 pass/
 __pycache__
+*.tar.gz

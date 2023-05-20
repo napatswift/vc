@@ -1,7 +1,8 @@
 # Install Anaconda
-cp /tmp
+cd /tmp
 curl --output anaconda.sh https://repo.anaconda.com/archive/Anaconda3-5.3.1-Linux-x86_64.sh
 bash anaconda.sh
+cd
 # After installed
 source ~/.bashrc
 

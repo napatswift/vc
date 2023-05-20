@@ -22,7 +22,7 @@ def classify_images(csv_path, model_path, batch_size=32):
         batch_paths = image_paths[i:i+batch_size]
         batch_images = []
         for image_path in batch_paths:
-            img = tf.keras.preprocessing.image.load_img(image_path, target_size=(224, 224))
+            img     = tf.keras.preprocessing.image.load_img(image_path, target_size=(224, 224))
             img_arr = tf.keras.preprocessing.image.img_to_array(img)
             img_arr = tf.keras.applications.mobilenet_v3.preprocess_input(img_arr)
             batch_images.append(img_arr)

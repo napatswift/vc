@@ -96,4 +96,5 @@
 ต่อมาหลังเลือกตั้ง กกต. ก็ได้ปล่อยชุดข้อมูลที่เป็นเอกสาร 5/18 ออกมาให้ประชาชนเห็น ตาม[ที่อยู่นี้](https://www.ect.go.th/ect_th/news_page.php?nid=21139) เราจึงเพิ่มข้อมูลเข้าไปในชุดข้อมูลสำหรับการฝึกโมเดลเพิ่มอีก
 
 ### ชุดข้อมูล
-- [Table Detection Dataset 740i](https://github.com/napatswift/vc/releases/download/table-det-v740i/table-det-740.tar.gz): มีข้อมูลของการตรวจจับตารางบนภาพ จัดอยู่ในรูปแบบ COCO โดยภาพที่ใช้ทั้งหมดมาจาก vote62 และ label ด้วยตัวเอง
+- [Table Detection Dataset 740i](https://github.com/napatswift/vc/releases/download/table-det-v740i/table-det-740.tar.gz): ชุดข้อมูลของการตรวจจับตารางบนภาพ จัดอยู่ในรูปแบบ COCO โดยภาพที่ใช้ทั้งหมดมาจาก vote62 และ label ด้วยตัวเอง
+- [Table Detection Dataset Election 2566](https://github.com/napatswift/vc/releases/download/table-det-v-1ki/table-det-elect66.tar.gz)

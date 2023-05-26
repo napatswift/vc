@@ -100,3 +100,11 @@ $ export LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=~/wevis/election-vote-count-66/v
 ### ชุดข้อมูล
 - [Table Detection Dataset 740i](https://github.com/napatswift/vc/releases/download/table-det-v740i/table-det-740.tar.gz): ชุดข้อมูลของการตรวจจับตารางบนภาพ จัดอยู่ในรูปแบบ COCO โดยภาพที่ใช้ทั้งหมดมาจาก vote62 และ label ด้วยตัวเอง
 - [Table Detection Dataset Election 2566](https://github.com/napatswift/vc/releases/download/table-det-v-1ki/table-det-elect66.tar.gz)
+
+## Text Recognition
+
+Use synthtiger for generating text image. I use the runpod's VM
+
+```
+$ apt install libfreetype6-dev libharfbuzz-dev libfribidi-dev meson gtk-doc-tools
+```

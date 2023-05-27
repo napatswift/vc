@@ -1,8 +1,16 @@
 from label_studio_ml.model import LabelStudioMLBase
+from label_studio_ml.utils import get_image_local_path
+import logging
 import cv2
 from gradio_client import Client
 import json
+from urllib.parse import unquote
 
+# Set the logging level.
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('TextDetModel')
+
+# Get the API client for the model.
 model_client = Client("https://napatswift-votecount-ml-be.hf.space/")
 
 
@@ -54,10 +62,17 @@ class MyModel(LabelStudioMLBase):
         prediction = []
 
         for task in tasks:
-            image_path = task['data'][image_value_key]
+            image_path = unquote(task['data'][image_value_key])
+
+            logging.info('Predicting image %s', image_path)
             print('Task ID', task['id'], 'image path', image_path)
             if image_path.startswith('/data/local-files/?d='):
                 image_path = image_path.replace('/data/local-files/?d=', '/')
+            elif image_path.startswith('/data/upload/'):
+                image_path = get_image_local_path(image_path)
+            
+            logging.info('Predicting image %s', image_path)
+
             try:
                 results, score = self._predict(image_path)
             except Exception as e:
@@ -122,7 +137,7 @@ class MyModel(LabelStudioMLBase):
         # Return the bounding boxes, and score.
         return bounding_boxes, score
 
-    def _prediction_filter(self, polygons, scores, score_threshold=0.5):
+    def _prediction_filter(self, polygons, scores, score_threshold=0.9):
         """
         Filters the predictions based on the score threshold.
         
@@ -195,12 +210,12 @@ class MyModel(LabelStudioMLBase):
                          pos in enumerate(polygon) if i % 2 != 0]
 
         # Get the minimum and maximum x-coordinates.
-        min_x = min(x_coordinates)
-        max_x = max(x_coordinates)
+        min_x = min(x_coordinates) - 0.15
+        max_x = max(x_coordinates) + 0.15
 
         # Get the minimum and maximum y-coordinates.
-        min_y = min(y_coordinates)
-        max_y = max(y_coordinates)
+        min_y = min(y_coordinates) - 0.15
+        max_y = max(y_coordinates) + 0.15
 
         # Calculate the width and height of the rectangle.
         width = max_x - min_x

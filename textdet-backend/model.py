@@ -1,4 +1,6 @@
 from label_studio_ml.model import LabelStudioMLBase
+from label_studio_ml.utils import get_image_local_path
+import logging
 import cv2
 from gradio_client import Client
 import json
@@ -55,9 +57,15 @@ class MyModel(LabelStudioMLBase):
 
         for task in tasks:
             image_path = task['data'][image_value_key]
+            logging.info('Predicting image %s', image_path)
             print('Task ID', task['id'], 'image path', image_path)
             if image_path.startswith('/data/local-files/?d='):
                 image_path = image_path.replace('/data/local-files/?d=', '/')
+            elif image_path.startswith('/data/upload/'):
+                image_path = get_image_local_path(image_path)
+            
+            logging.info('Predicting image %s', image_path)
+
             try:
                 results, score = self._predict(image_path)
             except Exception as e:
